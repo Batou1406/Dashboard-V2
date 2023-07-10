@@ -67,7 +67,7 @@ void Dashboard::read(){
     // Read Switch and buttons
     HPSwitch = !digitalRead(HP_SWITCH_PIN);
     armingSwitch = !digitalRead(ARMING_SWITCH_PIN);
-    deadManSwitch = !digitalRead(DEADMAN_SWITCH_PIN);
+    deadManSwitch = digitalRead(DEADMAN_SWITCH_PIN);
     takeOffButton = digitalRead(TAKEOFF_BUTTON_PIN);
 
     if(_debug){Serial.println("Dashboard read finished");}

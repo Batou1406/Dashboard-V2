@@ -100,10 +100,17 @@ void loop() {
 //------------------------------ Functions ------------------------------
 // Check if boat HP status is same as HP dashboard switch, send CAN msg if needed
 void handleHighPower(){
+    if(debug){
+        Serial.print("Handling HP ");
+        Serial.print("HighPower switch : ");Serial.println(dashboard.HPSwitch);
+        Serial.print("HighPower status : ");Serial.println(highPowerStatus);
+        Serial.println(" ");
+        
+    }
     // We are not in the same state as desired
-    if(highPowerStatus != dashboard.armingSwitch){
+    if(highPowerStatus != dashboard.HPSwitch){
         // To turn on the highPower we must be disarmed with the deadManSwitch enabled
-        if(dashboard.armingSwitch && dashboard.deadManSwitch && !dashboard.armingSwitch){
+        if(dashboard.HPSwitch && dashboard.deadManSwitch && !dashboard.armingSwitch){
             can1.beginPacket(BATTERY_PDO_1);
             can1.write(1); // Byte 0 : Index pour decoder Byte 1 -> 1 : Gestion du HP
             can1.write(1); // Byte 1 : 1->HP On , 0->HP Off
@@ -111,7 +118,7 @@ void handleHighPower(){
         }
 
         // We want to turn off HP
-        if(!dashboard.armingSwitch){
+        if(!dashboard.HPSwitch){
             can1.beginPacket(BATTERY_PDO_1);
             can1.write(1); // Byte 0 : Index pour decoder Byte 1 -> 1 : Gestion du HP
             can1.write(0); // Byte 1 : 1->HP On , 0->HP Off
@@ -136,8 +143,9 @@ void decodeCAN1Callback(int packetLength){
 
         case STATE_MACHINE_CAN_ID:
             if(packetLength != 4){break;} // invalid packet length
-            for (int i(0); i < 6; i++) {can1.read();} // dump 3 first byte
+            for (int i(0); i < 3; i++) {can1.read();} // dump 3 first byte
             armingStatus = (can1.read() == 3); 
+            if(debug){Serial.print("Arming status: ");Serial.println(armingStatus);}
             break;
 
         default:
@@ -155,7 +163,7 @@ void sendPilotInput(){
     can1.write(dashboard.speedCommand);     //Byte 0
     can1.write(dashboard.tuningCommand1);   //Byte 1
     can1.write(dashboard.tuningCommand2);   //Byte 2
-    can1.write( ((int8_t)dashboard.selector & 0b00000111) + ((dashboard.armingSwitch << 3) & 0b00001000) ); //Byte 3, Bit 0,1,2 : Selector, Bit 3 : arming switch
+    can1.write( ((int8_t)dashboard.selector & 0b00000111) + (((dashboard.armingSwitch & dashboard.deadManSwitch) << 3) & 0b00001000) ); //Byte 3, Bit 0,1,2 : Selector, Bit 3 : arming state (deadman et Arming)
     can1.write(highByte(steeringWheelPos)); //Byte 4
     can1.write(lowByte(steeringWheelPos));  //Byte 5
     can1.endPacket();
@@ -167,6 +175,8 @@ void sendPilotInput(){
         Serial.print("Tuning command 2 : ");Serial.println(dashboard.tuningCommand2);
         Serial.print("Steering wheel   : ");Serial.println(steeringWheelPos);
         Serial.print("Arming switch    : ");Serial.println(dashboard.armingSwitch);
+        Serial.print("DeadMan switch   : ");Serial.println(dashboard.deadManSwitch);
+        Serial.print("HighPower switch : ");Serial.println(dashboard.HPSwitch);
         Serial.print("Selector         : ");Serial.println((int8_t)dashboard.selector);
         Serial.println(" ");
     }
