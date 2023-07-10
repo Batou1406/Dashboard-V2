@@ -15,6 +15,7 @@
 #define GPIO_BASE                0x01
 #define GPIO_BULK                0x04
 #define ENCODER_BASE             0x11
+#define ROTARY_BUTTON              24 // pas bien sûr de ce que c'est...
 
 /** encoder module edge definitions */
 enum {
@@ -37,6 +38,7 @@ class Encoder
         bool disableEncoderInterrupt(uint8_t encoder = 0);
         void setEncoderPosition(int32_t pos, uint8_t encoder = 0);
         bool digitalRead(uint8_t pin);
+        void readRotaryButtonAndResetPos();
         bool enable = false; 
  
     private:

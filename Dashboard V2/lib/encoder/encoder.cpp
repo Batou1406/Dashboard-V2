@@ -391,3 +391,14 @@ uint32_t Encoder::digitalReadBulkB(uint32_t pins) {
                  ((uint32_t)buf[6] << 8) | (uint32_t)buf[7];
   return ret & pins;
 }
+
+
+/*************************************************************************
+ *  @brief      read the button of the encoder of multiple pins on port B.
+ *              If button is clicked, the encoder position is reseted.
+ ************************************************************************/
+void Encoder::readRotaryButtonAndResetPos(){
+    if (!digitalRead(ROTARY_BUTTON)) {
+        setEncoderPosition(0);
+    }
+}

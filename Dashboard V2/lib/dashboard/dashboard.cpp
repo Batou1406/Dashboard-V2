@@ -59,15 +59,15 @@ void Dashboard::read(){
         selector = flightMode::FOIL1;
     }else if(digitalRead(MODE_FOIL_2_PIN) == 0){
         selector = flightMode::FOIL2;
-    }else if(digitalRead(MODE_FOIL_2_PIN) == 0){
+    }else if(digitalRead(MODE_FOIL_3_PIN) == 0){
         selector = flightMode::FOIL3;
     }
     if(_debug){Serial.print("Selector mode : "); Serial.println((int)selector);}
 
     // Read Switch and buttons
-    HPSwitch = digitalRead(HP_SWITCH_PIN);
-    armingSwitch = digitalRead(ARMING_SWITCH_PIN);
-    deadManSwitch = digitalRead(DEADMAN_SWITCH_PIN);
+    HPSwitch = !digitalRead(HP_SWITCH_PIN);
+    armingSwitch = !digitalRead(ARMING_SWITCH_PIN);
+    deadManSwitch = !digitalRead(DEADMAN_SWITCH_PIN);
     takeOffButton = digitalRead(TAKEOFF_BUTTON_PIN);
 
     if(_debug){Serial.println("Dashboard read finished");}
@@ -76,7 +76,7 @@ void Dashboard::read(){
 
 // Read an analogPin (value between 0-1023) and return a value between -100,100 with 10% safety margin
 int8_t Dashboard::readAndScaleAnalog(int PintoRead){
-    int8_t temp = (   (   ((float)analogRead(SPEED_POT_PIN))/(ADC_MAX >> 1)   ) - 1) * 110;
+    int8_t temp = (   (   ((float)analogRead(PintoRead))/(ADC_MAX >> 1)   ) - 1) * 110;
     return max(-100, min(temp, 100));
 }
 

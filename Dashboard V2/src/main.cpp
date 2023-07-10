@@ -15,7 +15,6 @@
 
 // Rotary encoder
 #define ROTARY_ADDR 0x36
-#define ROTARY_BUTTON 24 // pas utiliser car ça fait bugger...
 #define ROTARY_INCREMENT_TO_STEERING_WHEEL_DEGREE 3
 
 // Frequency define for lisibility sake
@@ -78,7 +77,8 @@ void loop() {
         dashboard.updateLED(highPowerStatus, armingStatus);
         handleHighPower();
 
-        // Read encoder value and convert it to steering wheel angle
+        // Read encoder nutton and value and convert it to steering wheel angle and send it on CAN
+        rotary.readRotaryButtonAndResetPos();
         steeringWheelPos = (int16_t)(rotary.getEncoderPosition() * ROTARY_INCREMENT_TO_STEERING_WHEEL_DEGREE);
 
         // Send dashboard input on the CAN line
@@ -86,7 +86,7 @@ void loop() {
     }
 
     // One HZ
-    if(millis() > lastTime1Hz + TEN_HZ){
+    if(millis() > lastTime1Hz + ONE_HZ){
         lastTime1Hz = millis();
         
         // Send Heartbeat 
@@ -128,7 +128,7 @@ void decodeCAN1Callback(int packetLength){
 
     switch(can1.packetId()){
         case PACK_INFO_CAN_ID: // HP status is in that message 
-            if(packetLength != 2){break;} // invalid packet length
+            if(packetLength != 8){break;} // invalid packet length
             for (int i(0); i < 6; i++) {can1.read();} // dump 6 first byte
             highPowerStatus = (can1.read() >> 6) & 0b1; // Get HP status
             if(debug){Serial.print("HP status: ");Serial.println(highPowerStatus);}
@@ -144,7 +144,7 @@ void decodeCAN1Callback(int packetLength){
             break;
     }
 
-    // Debuff is necessary
+    // Debuff if necessary
     while(can1.available()){
         can1.read();
     }
@@ -155,8 +155,19 @@ void sendPilotInput(){
     can1.write(dashboard.speedCommand);     //Byte 0
     can1.write(dashboard.tuningCommand1);   //Byte 1
     can1.write(dashboard.tuningCommand2);   //Byte 2
-    can1.write( ((int)dashboard.selector & 0b00000111) + ((dashboard.armingSwitch << 3) & 0b00001000) ); //Byte 3, Bit 0,1,2 : Selector, Bit 3 : arming switch
+    can1.write( ((int8_t)dashboard.selector & 0b00000111) + ((dashboard.armingSwitch << 3) & 0b00001000) ); //Byte 3, Bit 0,1,2 : Selector, Bit 3 : arming switch
     can1.write(highByte(steeringWheelPos)); //Byte 4
     can1.write(lowByte(steeringWheelPos));  //Byte 5
     can1.endPacket();
+
+    if(debug){
+        Serial.println("Sending CAN message");
+        Serial.print("Speed command    : ");Serial.println(dashboard.speedCommand);
+        Serial.print("Tuning command 1 : ");Serial.println(dashboard.tuningCommand1);
+        Serial.print("Tuning command 2 : ");Serial.println(dashboard.tuningCommand2);
+        Serial.print("Steering wheel   : ");Serial.println(steeringWheelPos);
+        Serial.print("Arming switch    : ");Serial.println(dashboard.armingSwitch);
+        Serial.print("Selector         : ");Serial.println((int8_t)dashboard.selector);
+        Serial.println(" ");
+    }
 }
