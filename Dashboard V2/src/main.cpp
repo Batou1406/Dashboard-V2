@@ -75,7 +75,7 @@ void loop() {
         lastTime10Hz = millis();
 
         dashboard.read();
-        dashboard.updateLED(highPowerStatus, armingStatus);
+        dashboard.updateLED(highPowerStatus, !armingStatus);
         handleHighPower();
 
         // Read encoder nutton and value and convert it to steering wheel angle and send it on CAN
@@ -177,7 +177,7 @@ void sendPilotInput(){
     can1.write(dashboard.speedCommand);     //Byte 0
     can1.write(dashboard.tuningCommand1);   //Byte 1
     can1.write(dashboard.tuningCommand2);   //Byte 2
-    can1.write( ((int8_t)dashboard.selector & 0b00000111) + (((dashboard.armingSwitch & dashboard.deadManSwitch) << 3) & 0b00001000) ); //Byte 3, Bit 0,1,2 : Selector, Bit 3 : arming state (deadman et Arming)
+    can1.write( ((int8_t)dashboard.selector & 0b00000111) + (( (!(dashboard.armingSwitch & dashboard.deadManSwitch)) << 3) & 0b00001000) ); //Byte 3, Bit 0,1,2 : Selector, Bit 3 : arming state (deadman et Arming)
     can1.write(highByte(steeringWheelPos)); //Byte 4
     can1.write(lowByte(steeringWheelPos));  //Byte 5
     can1.endPacket();
