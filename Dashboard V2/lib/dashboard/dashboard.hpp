@@ -66,6 +66,7 @@ class Dashboard
     private:
         bool _debug;
         int8_t readAndScaleAnalog(int PintoRead);
+        int8_t readAndScaleSpeedPot(int PintoRead);
 
 };
 
