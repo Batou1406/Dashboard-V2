@@ -30,7 +30,8 @@ void sendPilotInput();
 
 
 //-------------------------- Global Variables ---------------------------
-bool debug = true;
+bool debug = false;
+bool oneHZprint = true;
 Encoder rotary(&Wire, ROTARY_ADDR,  ROTARY_BUTTON, debug);
 Dashboard dashboard(debug);
 int16_t steeringWheelPos = 0; // Position du volant en degree
@@ -93,6 +94,19 @@ void loop() {
         can1.beginPacket(HEARTBEAT_ADDR);
         can1.write(0x05);
         can1.endPacket();
+
+        if(oneHZprint){
+            Serial.print("Speed command    : ");Serial.println(dashboard.speedCommand);
+            Serial.print("Tuning command 1 : ");Serial.println(dashboard.tuningCommand1);
+            Serial.print("Tuning command 2 : ");Serial.println(dashboard.tuningCommand2);
+            Serial.print("Steering wheel   : ");Serial.println(steeringWheelPos);
+            Serial.print("Arming switch    : ");Serial.println(dashboard.armingSwitch);
+            Serial.print("DeadMan switch   : ");Serial.println(dashboard.deadManSwitch);
+            Serial.print("HighPower switch : ");Serial.println(dashboard.HPSwitch);
+            Serial.print("Take-off button  : ");Serial.println(dashboard.takeOffButton);
+            Serial.print("Selector         : ");Serial.println((int8_t)dashboard.selector);
+            Serial.println(" ");
+        }
     }
 }
 
